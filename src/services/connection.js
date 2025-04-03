@@ -8,10 +8,10 @@ const dbName = process.env.MONGODB_DB_NAME;
 
 const connection = async (err) => {
   await client.connect();
-  console.log("Connected successfully to server");
+  console.log("Conectado ao servidor com sucesso");
 
   if (err) {
-    console.error("Error connecting to MongoDB:", err);
+    console.error("Erro ao conectar: ", err);
     return;
   }
 
