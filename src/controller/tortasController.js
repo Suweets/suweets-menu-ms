@@ -3,10 +3,11 @@ import * as tortas from "../repository/tortaRepository.js";
 
 const endpoints = Router();
 
+// Endpoint para buscar todas as tortas
 endpoints.get("/tortas", async (req, res) => {
   const tortasList = await tortas.getAllTortas();
 
-  if (tortasList.length === 0) {
+  if (!tortasList) {
     return res.send({
       message: "Não há tortas cadastradas",
     });
@@ -17,6 +18,8 @@ endpoints.get("/tortas", async (req, res) => {
     tortas: tortasList,
   });
 });
+
+// Endpoint para buscar torta pelo nome
 endpoints.get("/tortas/:name", async (req, res) => {
   const name = req.params.name;
   const torta = await tortas.getTortaByName(name);
@@ -33,12 +36,13 @@ endpoints.get("/tortas/:name", async (req, res) => {
   });
 });
 
+// Endpoint para adicionar torta
 endpoints.post("/tortas", async (req, res) => {
   const torta = req.body;
 
   let result = await tortas.addTorta(torta);
 
-  if (result.length === 0) {
+  if (!result) {
     return res.status(403).send({
       message: "Não foi possivel adicionar a torta"
     });
@@ -50,37 +54,39 @@ endpoints.post("/tortas", async (req, res) => {
   })
 });
 
+// Endpoint para atualizar torta
 endpoints.put("/tortas/:name", async (req, res) => {
   const name = req.params.name;
   const torta = req.body;
 
   let result = await tortas.updateTorta(name, torta);
 
-  if (result.length === 0) {
+  if (!result) {
     return res.status(403).send({
       message: "Não foi possivel atualizar o torta"
     });
   }
 
   return res.status(200).send({
-    message: "torta atualizado com sucesso",
+    message: "Torta atualizada com sucesso",
     affectedRows: result
   })
 });
 
+// Endpoint para deletar torta
 endpoints.delete("/tortas/:name", async (req, res) => {
   const name = req.params.name;
 
   let result = await tortas.deleteTorta(name);
 
-  if (result.length === 0) {
+  if (!result) {
     return res.status(403).send({
       message: "Não foi possivel deletar a torta"
     });
   }
 
   return res.status(200).send({
-    message: "torta deletado com sucesso",
+    message: "Torta deletata com sucesso",
     affectedRows: result
   })
 });
