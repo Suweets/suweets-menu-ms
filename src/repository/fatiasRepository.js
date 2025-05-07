@@ -1,64 +1,116 @@
-import 'dotenv/config';
 import connection from "../services/connection.js";
 
-// Importando a conexão com o banco de dados
-const db = await connection();
-
-// Função para buscar todas as fatias
+// Função para buscar todos os fatias
 export async function getAllFatias() {
-  const fatias = await db.collections(process.env.MONGODB_COLLECTION_NAME_SLICE).find({}).toArray();
+  const query = `
+    SELECT * FROM view_fatia_ingredientes;
+  `;
+
+  let [fatias] = await connection.query(query);
+
   return fatias;
-}
+};
 
-// Funcao para buscar fatia pelo nome
-export async function getFatiasByName(name) {
-  const fatia = await db.collection(process.env.MONGODB_COLLECTION_NAME_SLICE).findOne({ nome_fatia: name });
+// Função para adicionar fatia
+export async function addFatia(fatia, ingredientes) {
+  const query = `
+    INSERT INTO fatia (nome_fatia, massa, recheio, cobertura, peso_kg, valor)
+    VALUES (?, ?, ?, ?, ?, ?);
+  `;
 
-  if (!fatia) {
-    return null;
-  }
+  const values = [
+    fatia.nome,
+    fatia.massa,
+    fatia.recheio,
+    fatia.cobertura,
+    fatia.peso,
+    fatia.valor
+  ];
+
+  let [result] = await connection.query(query, values);
+
+  ingredientes.forEach(element => {
+    const query = `
+      INSERT INTO fatia_ingredientes (id_fatia, ingrediente)
+      VALUES (?, ?);
+    `;
+
+    const values = [
+      result.insertedId,
+      element
+    ];
+
+    connection.query(query, values);
+  });
+
+  return result.insertedId;
+};
+
+//Função para buscar fatia pelo nome
+export async function getFatiaByNome(nome) {
+  const query = `
+    SELECT * FROM view_fatia_ingredientes WHERE nome_fatia = ?;
+  `;
+
+  const [fatia] = await connection.query(query, [nome]);
+
+  return fatia;
+};
+
+//Função para buscar fatia pelo id
+export async function getFatiaById(id) {
+  const query = `
+    SELECT * FROM view_fatia_ingredientes WHERE id = ?;
+  `;
+
+  const [fatia] = await connection.query(query, [id]);
+
+  return fatia;
+};
+
+// Função para buscar fatia pelo ingrediente
+export async function getFatiaByIngrediente(ingrediente) {
+  const query = `
+    SELECT * FROM view_fatia_ingredientes WHERE ingrediente = ?;
+  `;
+
+  const [fatia] = await connection.query(query, [ingrediente]);
 
   return fatia;
 }
 
-// Função para adicionar fatia
-export async function addFatia(fatia) {
-  const result = await db.collection(process.env.MONGODB_COLLECTION_NAME_SLICE).insertOne({
-    nome_fatia: fatia.nome,
-    massa: fatia.massa,
-    recheio: fatia.recheio,
-    cobertura: fatia.cobertura,
-    valor: fatia.valor,
-    ingredientes: fatia.ingredientes,
-    peso_g: fatia.peso_g
-  });
+// Função para atualizar as informações do fatia
+export async function updateFatia(id, fatia) {
+  const query = `
+    UPDATE fatia
+    SET nome_fatia = ?, massa = ?, recheio = ?, cobertura = ?, peso_kg = ?, valor = ?
+    WHERE id = ?;
+  `;
 
-  return result.insertedId;
-}
+  const values = [
+    fatia.nome,
+    fatia.massa,
+    fatia.recheio,
+    fatia.cobertura,
+    fatia.peso,
+    fatia.valor,
+    id
+  ];
 
-// Função para atualizar as informações da fatia
-export async function updateFatia(name, fatia) {
-  const result = await db.collection(process.env.MONGODB_COLLECTION_NAME_SLICE).updateOne(
-    { nome_fatia: name }, 
-    {
-      $set: {
-        nome_fatia: fatia.nome,
-        massa: fatia.massa,
-        recheio: fatia.recheio,
-        cobertura: fatia.cobertura,
-        valor: fatia.valor,
-        ingredientes: fatia.ingredientes,
-        peso_g: fatia.peso
-      }
-    }
-  );
+  let [result] = await connection.query(query, values);
 
-  return result.modifiedCount;
-}
+  return result.affectedRows;
+};
 
-// Função para deletar a fatia
+//Função para deletar fatia
 export async function deleteFatia(id) {
-  const result = await db.collection(process.env.MONGODB_COLLECTION_NAME_SLICE).deleteOne({ _id: id });
+  const query = `
+    DELETE FROM fatia WHERE id = ?;
+  `;
 
-  return result.deletedCount;
-}
+  const values = [id];
+
+  let [result] = await connection.query(query, values);
+
+  return result.affectedRows;
+};

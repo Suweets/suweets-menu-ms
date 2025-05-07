@@ -1,64 +1,118 @@
-import "dotenv/config";
 import connection from "../services/connection.js";
-
-// Importando a conexão com o banco de dados
-const db = await connection();
 
 // Função para buscar todos os bolos
 export async function getAllBolos() {
-  const bolos = await db.collection(process.env.MONGODB_COLLECTION_NAME_CAKE).find({}).toArray();
+  const query = `
+    SELECT * FROM view_bolo_ingredientes;
+  `;
+
+  let [bolos] = await connection.query(query);
+
   return bolos;
-}
+};
 
 // Função para adicionar Bolo
-export async function addBolo(bolo) {
-  const result = await db.collection(process.env.MONGODB_COLLECTION_NAME_CAKE).insertOne({
-    nome_bolo: bolo.nome,
-    massa: bolo.massa,
-    recheio: bolo.recheio,
-    cobertura: bolo.cobertura,
-    peso_kg: bolo.peso,
-    valor: bolo.valor,
-    ingredientes: bolo.ingredientes
+export async function addBolo(bolo, ingredientes) {
+  const query = `
+    INSERT INTO bolo (nome_bolo, massa, recheio, cobertura, peso_kg, valor)
+    VALUES (?, ?, ?, ?, ?, ?);
+  `;
+
+  const values = [
+    bolo.nome,
+    bolo.massa,
+    bolo.recheio,
+    bolo.cobertura,
+    bolo.peso,
+    bolo.valor
+  ];
+
+  let [result] = await connection.query(query, values);
+
+  console.log(result.insertId);
+
+  ingredientes.forEach(element => {
+    const query = `
+      INSERT INTO bolo_ingrediente (id_bolo, ingrediente)
+      VALUES (?, ?);
+    `;
+
+    const values = [
+      result.insertId,
+      element
+    ];
+
+    connection.query(query, values);
   });
 
-  return result.insertedId;
-}
+  return result.insertId;
+};
 
-// Função para buscar bolo pelo nome
-export async function getBoloByName(name) {
-  const bolo = await db.collection(process.env.MONGODB_COLLECTION_NAME_CAKE).findOne({ nome_bolo: name });
+//Função para buscar bolo pelo nome
+export async function getBoloByNome(nome) {
+  const query = `
+    SELECT * FROM view_bolo_ingredientes WHERE nome_bolo = ?;
+  `;
 
-  if (!bolo) {
-    return null;
-  }
+  const [bolo] = await connection.query(query, [nome]);
 
   return bolo;
-}
+};
+
+//Função para buscar bolo pelo nome
+export async function getBoloBydId(id) {
+  const query = `
+    SELECT * FROM view_bolo_ingredientes WHERE id_bolo = ?;
+  `;
+
+  const [bolo] = await connection.query(query, [id]);
+
+  return bolo;
+};
+
+// Função para buscar bolo pelo ingrediente
+export async function getBoloByIngrediente(ingrediente) {
+  const query = `
+    SELECT * FROM view_bolo_ingredientes WHERE ingrediente = ?;
+  `;
+
+  const [bolo] = await connection.query(query, [ingrediente]);
+
+  return bolo;
+};
 
 // Função para atualizar as informações do bolo
-export async function updateBolo(name, bolo) {
-  const result = await db.collection(process.env.MONGODB_COLLECTION_NAME_CAKE).updateOne(
-    { nome_bolo: name },
-    {
-      $set: {
-        nome_bolo: bolo.nome,
-        massa: bolo.massa,
-        recheio: bolo.recheio,
-        cobertura: bolo.cobertura,
-        peso_kg: bolo.peso,
-        valor: bolo.valor,
-        ingredientes: bolo.ingredientes
-      }
-    }
-  );
+export async function updateBolo(id, bolo) {
+  const query = `
+    UPDATE bolo
+    SET nome_bolo = ?, massa = ?, recheio = ?, cobertura = ?, peso_kg = ?, valor = ?
+    WHERE id = ?;
+  `;
 
-  return result.modifiedCount;
-}
+  const values = [
+    bolo.nome,
+    bolo.massa,
+    bolo.recheio,
+    bolo.cobertura,
+    bolo.peso,
+    bolo.valor,
+    id
+  ];
+
+  let [result] = await connection.query(query, values);
+
+  return result.affectedRows;
+};
 
 //Função para deletar bolo
 export async function deleteBolo(id) {
-  const result = await db.collection(process.env.MONGODB_COLLECTION_NAME_CAKE).deleteOne({ _id: id });
+  const query = `
+    DELETE FROM bolo WHERE id = ?;
+  `;
 
-  return result.deletedCount;
-}
+  const values = [id];
+
+  let [result] = await connection.query(query, values);
+
+  return result.affectedRows;
+};

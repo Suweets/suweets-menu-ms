@@ -19,10 +19,44 @@ endpoints.get("/bolos", async (req, res) => {
   });
 });
 
-// Endpoint para buscar bolo pelo nome
-endpoints.get("/bolos/:name", async (req, res) => {
-  const name = req.params.name;
-  const bolo = await bolos.getBoloByName(name);
+// Endpoint para buscar bolo pelo ingrediente
+endpoints.get("/bolos/:ingrediente", async (req, res) => {
+  const ingrediente = req.params.ingrediente;
+  const bolo = await bolos.getBoloByIngrediente(ingrediente);
+
+  if (!bolo) {
+    return res.status(404).send({
+      message: "Bolo não encontrado",
+    });
+  }
+
+  return res.status(200).send({
+    message: "Bolo encontrado",
+    bolo: bolo,
+  });
+});
+
+// Endpoint para buscar o bolo pelo nome
+endpoints.get("/bolos/:nome", async (req, res) => {
+  const nome = req.params.nome;
+  const bolo = await bolos.getBoloByNome(nome);
+
+  if (!bolo) {
+    return res.status(404).send({
+      message: "Bolo não encontrado",
+    });
+  }
+
+  return res.status(200).send({
+    message: "Bolo encontrado",
+    bolo: bolo,
+  });
+});
+
+// Endpoint para buscar bolo pelo id
+endpoints.get("/bolos/:id", async (req, res) => {
+  const id = req.params.id;
+  const bolo = await bolos.getBoloById(id);
 
   if (!bolo) {
     return res.status(404).send({
@@ -38,9 +72,17 @@ endpoints.get("/bolos/:name", async (req, res) => {
 
 // Endpoint para adicionar bolo
 endpoints.post("/bolos", async (req, res) => {
-  const bolo = req.body;
+  const { bolo, ingredientes } = req.body;
 
-  let result = await bolos.addBolo(bolo);
+  let resultExist = await bolos.getBoloByNome(bolo.nome);
+
+  if (resultExist) {
+    return res.status(403).send({
+      message: "Bolo já cadastrado"
+    });
+  }
+
+  let result = await bolos.addBolo(bolo, ingredientes);
 
   if (!result) {
     return res.status(403).send({
@@ -55,11 +97,19 @@ endpoints.post("/bolos", async (req, res) => {
 });
 
 // Endpoint para atualizar bolo
-endpoints.put("/bolos/:name", async (req, res) => {
-  const name = req.params.name;
+endpoints.put("/bolos/:id", async (req, res) => {
+  const id = req.params.id;
   const bolo = req.body;
 
-  let result = await bolos.updateBolo(name, bolo);
+  let resultExist = await bolos.getBoloByNome(bolo.nome);
+
+  if (resultExist) {
+    return res.status(403).send({
+      message: "Bolo já cadastrado"
+    });
+  }
+
+  let result = await bolos.updateBolo(id, bolo);
 
   if (!result) {
     return res.status(403).send({
@@ -74,10 +124,10 @@ endpoints.put("/bolos/:name", async (req, res) => {
 });
 
 // Endpoint para deletar bolo
-endpoints.delete("/bolos/:name", async (req, res) => {
-  const name = req.params.name;
+endpoints.delete("/bolos/:id", async (req, res) => {
+  const id = req.params.id;
 
-  let result = await bolos.deleteBolo(name);
+  let result = await bolos.deleteBolo(id);
 
   if (!result) {
     return res.status(403).send({
