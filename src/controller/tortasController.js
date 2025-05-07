@@ -3,12 +3,12 @@ import * as tortas from "../repository/tortaRepository.js";
 
 const endpoints = Router();
 
-// Endpoint para buscar todas as tortas
+// Endpoint para buscar todos os tortas
 endpoints.get("/tortas", async (req, res) => {
   const tortasList = await tortas.getAllTortas();
 
   if (!tortasList) {
-    return res.send({
+    return res.status(404).send({
       message: "Não há tortas cadastradas",
     });
   }
@@ -19,28 +19,70 @@ endpoints.get("/tortas", async (req, res) => {
   });
 });
 
-// Endpoint para buscar torta pelo nome
-endpoints.get("/tortas/:name", async (req, res) => {
-  const name = req.params.name;
-  const torta = await tortas.getTortaByName(name);
+// Endpoint para buscar torta pelo ingrediente
+endpoints.get("/tortas/:ingrediente", async (req, res) => {
+  const ingrediente = req.params.ingrediente;
+  const torta = await tortas.getTortaByIngrediente(ingrediente);
 
   if (!torta) {
     return res.status(404).send({
-      message: "torta não encontrado",
+      message: "Torta não encontrada",
     });
   }
 
   return res.status(200).send({
-    message: "torta encontrada",
+    message: "Torta encontrada",
+    torta: torta,
+  });
+});
+
+// Endpoint para buscar o torta pelo nome
+endpoints.get("/tortas/:nome", async (req, res) => {
+  const nome = req.params.nome;
+  const torta = await tortas.getTortaByNome(nome);
+
+  if (!torta) {
+    return res.status(404).send({
+      message: "Torta não encontrada",
+    });
+  }
+
+  return res.status(200).send({
+    message: "Torta encontrada",
+    torta: torta,
+  });
+});
+
+// Endpoint para buscar torta pelo id
+endpoints.get("/tortas/:id", async (req, res) => {
+  const id = req.params.id;
+  const torta = await tortas.getTortaById(id);
+
+  if (!torta) {
+    return res.status(404).send({
+      message: "torta não encontrada",
+    });
+  }
+
+  return res.status(200).send({
+    message: "Torta encontrada",
     torta: torta,
   });
 });
 
 // Endpoint para adicionar torta
 endpoints.post("/tortas", async (req, res) => {
-  const torta = req.body;
+  const { torta, ingredientes } = req.body;
 
-  let result = await tortas.addTorta(torta);
+  let resultExist = await tortas.geTtortaByNome(torta.nome);
+
+  if (resultExist) {
+    return res.status(403).send({
+      message: "Torta já cadastrada"
+    });
+  }
+
+  let result = await tortas.addTorta(torta, ingredientes);
 
   if (!result) {
     return res.status(403).send({
@@ -49,21 +91,29 @@ endpoints.post("/tortas", async (req, res) => {
   }
 
   return res.status(200).send({
-    message: "torta adicionado com sucesso",
+    message: "Torta adicionado com sucesso",
     affectedRows: result
   })
 });
 
 // Endpoint para atualizar torta
-endpoints.put("/tortas/:name", async (req, res) => {
-  const name = req.params.name;
+endpoints.put("/tortas/:id", async (req, res) => {
+  const id = req.params.id;
   const torta = req.body;
 
-  let result = await tortas.updateTorta(name, torta);
+  let resultExist = await tortas.getTortaByNome(torta.nome);
+
+  if (resultExist) {
+    return res.status(403).send({
+      message: "Torta já cadastrada"
+    });
+  }
+
+  let result = await tortas.updateTorta(id, torta);
 
   if (!result) {
     return res.status(403).send({
-      message: "Não foi possivel atualizar o torta"
+      message: "Não foi possivel atualizar a torta"
     });
   }
 
@@ -73,11 +123,11 @@ endpoints.put("/tortas/:name", async (req, res) => {
   })
 });
 
-// Endpoint para deletar torta
-endpoints.delete("/tortas/:name", async (req, res) => {
-  const name = req.params.name;
+// Endpoint para deletar Torta
+endpoints.delete("/tortas/:id", async (req, res) => {
+  const id = req.params.id;
 
-  let result = await tortas.deleteTorta(name);
+  let result = await tortas.deleteTorta(id);
 
   if (!result) {
     return res.status(403).send({
@@ -86,7 +136,7 @@ endpoints.delete("/tortas/:name", async (req, res) => {
   }
 
   return res.status(200).send({
-    message: "Torta deletata com sucesso",
+    message: "Torta deletada com sucesso",
     affectedRows: result
   })
 });
