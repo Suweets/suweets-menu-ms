@@ -1,7 +1,7 @@
-import 'dotenv/config';
-import cors from 'cors';
-import express from 'express';
-import routes from './routes.js';
+import "dotenv/config";
+import cors from "cors";
+import express from "express";
+import routes from "./routes.js";
 
 const PORT = process.env.PORT;
 
