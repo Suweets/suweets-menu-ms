@@ -76,7 +76,7 @@ endpoints.post("/fatias", async (req, res) => {
 
   let resultExist = await fatias.getFatiaByNome(fatia.nome);
 
-  if (resultExist) {
+  if (resultExist.length > 0) {
     return res.status(403).send({
       message: "Fatia já cadastrada"
     });

@@ -3,7 +3,7 @@ import connection from "../services/connection.js";
 // Função para buscar todos os bolos
 export async function getAllBolos() {
   const query = `
-    SELECT * FROM view_bolo_ingredientes;
+    SELECT * FROM bolo;
   `;
 
   let [bolos] = await connection.query(query);
