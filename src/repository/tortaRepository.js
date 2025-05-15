@@ -3,7 +3,7 @@ import connection from "../services/connection.js";
 // Função para buscar todos os tortas
 export async function getAllTortas() {
   const query = `
-    SELECT * FROM view_torta_ingredientes;
+    SELECT * FROM torta;
   `;
 
   let [tortas] = await connection.query(query);
@@ -31,25 +31,25 @@ export async function addTorta(torta, ingredientes) {
 
   ingredientes.forEach(element => {
     const query = `
-      INSERT INTO torta_ingredientes (id_torta, ingrediente)
+      INSERT INTO torta_ingrediente (id_torta, ingrediente)
       VALUES (?, ?);
     `;
 
     const values = [
-      result.insertedId,
+      result.inserted,
       element
     ];
 
     connection.query(query, values);
   });
 
-  return result.insertedId;
+  return result.insertId;
 };
 
 //Função para buscar torta pelo nome
 export async function getTortaByNome(nome) {
   const query = `
-    SELECT * FROM view_torta_ingredientes WHERE nome_torta = ?;
+    SELECT * FROM view_torta_ingredientes WHERE nome_produto = ?;
   `;
 
   const [torta] = await connection.query(query, [nome]);

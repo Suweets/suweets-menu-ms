@@ -3,7 +3,7 @@ import connection from "../services/connection.js";
 // Função para buscar todos os fatias
 export async function getAllFatias() {
   const query = `
-    SELECT * FROM view_fatia_ingredientes;
+    SELECT * FROM fatia;
   `;
 
   let [fatias] = await connection.query(query);
@@ -14,7 +14,7 @@ export async function getAllFatias() {
 // Função para adicionar fatia
 export async function addFatia(fatia, ingredientes) {
   const query = `
-    INSERT INTO fatia (nome_fatia, massa, recheio, cobertura, peso_kg, valor)
+    INSERT INTO fatia (nome_fatia, massa, recheio, cobertura, peso_g, valor)
     VALUES (?, ?, ?, ?, ?, ?);
   `;
 
@@ -31,25 +31,25 @@ export async function addFatia(fatia, ingredientes) {
 
   ingredientes.forEach(element => {
     const query = `
-      INSERT INTO fatia_ingredientes (id_fatia, ingrediente)
+      INSERT INTO fatia_ingrediente (id_fatia, ingrediente)
       VALUES (?, ?);
     `;
 
     const values = [
-      result.insertedId,
+      result.insertId,
       element
     ];
 
     connection.query(query, values);
   });
 
-  return result.insertedId;
+  return result.insertId;
 };
 
 //Função para buscar fatia pelo nome
 export async function getFatiaByNome(nome) {
   const query = `
-    SELECT * FROM view_fatia_ingredientes WHERE nome_fatia = ?;
+    SELECT * FROM view_fatia_ingredientes WHERE nome_produto = ?;
   `;
 
   const [fatia] = await connection.query(query, [nome]);
@@ -83,7 +83,7 @@ export async function getFatiaByIngrediente(ingrediente) {
 export async function updateFatia(id, fatia) {
   const query = `
     UPDATE fatia
-    SET nome_fatia = ?, massa = ?, recheio = ?, cobertura = ?, peso_kg = ?, valor = ?
+    SET nome_fatia = ?, massa = ?, recheio = ?, cobertura = ?, peso_g = ?, valor = ?
     WHERE id = ?;
   `;
 
